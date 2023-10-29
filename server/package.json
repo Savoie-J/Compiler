@@ -1,0 +1,17 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "epub-gen": "^0.1.0",
+    "express": "^4.18.2",
+    "express-fileupload": "^1.4.1",
+    "get-port": "^7.0.0"
+  }
+}
