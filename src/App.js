@@ -4,7 +4,7 @@ function App() {
   const [file, setFile] = useState(null);
   const [uploadMessage, setUploadMessage] = useState('');
 
-  const serverUrl = 'http://localhost:52875'; // Replace with your actual server URL
+  const serverUrl = 'http://localhost:52875';
 
   const handleFileUpload = (event) => {
     const uploadedFile = event.target.files[0];
