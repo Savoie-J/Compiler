@@ -1,28 +1,30 @@
 import React, { useState } from 'react';
 
 function App() {
-  const [file, setFile] = useState(null);
+  const [file, setFile] = useState([]);
   const [uploadMessage, setUploadMessage] = useState('');
 
   const serverUrl = 'http://localhost:52875';
 
   const handleFileUpload = (event) => {
-    const uploadedFile = event.target.files[0];
-    setFile(uploadedFile);
-    setUploadMessage(`Selected file: ${uploadedFile.name}`);
+    const uploadedFiles = event.target.files;
+    setFile(uploadedFiles);
+    setUploadMessage(`${uploadedFiles.length} file(s) selected`);
   };
 
   const handleUpload = () => {
-    if (!file) {
-      setUploadMessage('Please select a file before uploading.');
+    if (!file || file.length === 0) {
+      setUploadMessage('Please select at least one file before uploading.');
       return;
     }
 
-    // Create a FormData object and append the uploaded file
+    // Create a FormData object and append each uploaded file
     const formData = new FormData();
-    formData.append('htmlFile', file);
+    for (let i = 0; i < file.length; i++) {
+      formData.append('htmlFiles', file[i]);
+    }
 
-    // Send the HTML file to the server
+    // Send the HTML files to the server
     fetch(`${serverUrl}/upload-html`, {
       method: 'POST',
       body: formData,
@@ -39,7 +41,7 @@ function App() {
       })
       .catch((error) => {
         console.error('Error:', error);
-        setUploadMessage('Error uploading the file.');
+        setUploadMessage('Error uploading the files.');
       });
   };
 
@@ -73,7 +75,7 @@ function App() {
 
   return (
     <div>
-      <input type="file" onChange={handleFileUpload} />
+      <input type="file" onChange={handleFileUpload} multiple />
       <p>{uploadMessage}</p>
       <button onClick={handleUpload}>Upload HTML</button>
       <button onClick={handleGenerateEpub}>Generate EPUB</button>

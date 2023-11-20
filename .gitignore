@@ -25,3 +25,5 @@ yarn-error.log*
 # uploads & generated files
 server/uploads
 server/generated
+
+node_modules/

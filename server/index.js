@@ -23,38 +23,49 @@ app.use(bodyParser.json());
 
 app.use(fileUpload()); 
 
+// server/index.js
+
 app.post('/upload-html', async (req, res) => {
-    try {
-      console.log('Received request to upload HTML file.');
-  
-      if (!req.files || !req.files.htmlFile) {
-        console.log('No HTML file in the request.');
-        return res.status(400).json({ error: 'HTML file is required.' });
-      }
-  
-      const htmlFile = req.files.htmlFile;
-      const uploadPath = path.join(__dirname, 'uploads', 'uploaded.html');
-  
-      console.log('Moving the uploaded file to:', uploadPath);
-  
-      // Move the uploaded file to a designated location
-      htmlFile.mv(uploadPath, (err) => {
+  try {
+    console.log('Received request to upload HTML files.');
+
+    if (!req.files || !req.files.htmlFiles || req.files.htmlFiles.length === 0) {
+      console.log('No HTML files in the request.');
+      return res.status(400).json({ error: 'HTML files are required.' });
+    }
+
+    const htmlFiles = req.files.htmlFiles;
+    const uploadPath = path.join(__dirname, 'uploads');
+
+    console.log('Moving the uploaded files to:', uploadPath);
+
+    // Ensure the 'uploads' directory exists
+    if (!fs.existsSync(uploadPath)) {
+      fs.mkdirSync(uploadPath);
+    }
+
+    // Move each uploaded file to the 'uploads' directory
+    htmlFiles.forEach((file, index) => {
+      const filePath = path.join(uploadPath, `uploaded${index + 1}.html`);
+      file.mv(filePath, (err) => {
         if (err) {
           console.error('Error moving the file:', err);
-          return res.status(500).json({ error: 'Failed to upload HTML file.' });
+          return res.status(500).json({ error: 'Failed to upload HTML files.' });
         }
-  
-        console.log('HTML file uploaded successfully.');
-        res.json({ message: 'HTML file uploaded successfully.' });
       });
-    } catch (error) {
-      console.error('Error in /upload-html route:', error);
-      res.status(500).json({ error: 'Internal Server Error' });
-    }
-  });
+    });
+
+    console.log('HTML files uploaded successfully.');
+    res.json({ message: 'HTML files uploaded successfully.' });
+  } catch (error) {
+    console.error('Error in /upload-html route:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+
+
   
-
-
 // Define a route for generating EPUBs
 app.post('/generate-epub', async (req, res) => {
   // Handle EPUB generation logic here
