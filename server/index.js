@@ -66,10 +66,11 @@ app.post('/upload-html', async (req, res) => {
 
 
   
-// Define a route for generating EPUBs
-app.post('/generate-epub', async (req, res) => {
-  // Handle EPUB generation logic here
+// server/index.js
 
+// ... (other imports and configurations)
+
+app.post('/generate-epub', async (req, res) => {
   try {
     // Read all files from the 'uploads' directory
     const files = await readdir(path.join(__dirname, 'uploads'));
@@ -102,7 +103,15 @@ app.post('/generate-epub', async (req, res) => {
         const epubPath = options.output;
 
         // Send the generated EPUB as a download to the client
-        res.download(epubPath, 'book.epub');
+        res.download(epubPath, 'book.epub', (err) => {
+          if (err) {
+            console.error('Error sending EPUB for download:', err);
+            res.status(500).json({ error: 'Failed to send EPUB for download.' });
+          } else {
+            // Delete the uploaded HTML files after successful download
+            deleteUploadedHTMLFiles();
+          }
+        });
       })
       .catch((err) => {
         console.error('Error generating EPUB:', err);
@@ -113,6 +122,29 @@ app.post('/generate-epub', async (req, res) => {
     res.status(500).json({ error: 'Failed to read HTML files.' });
   }
 });
+
+// Function to delete the uploaded HTML files
+function deleteUploadedHTMLFiles() {
+  const uploadPath = path.join(__dirname, 'uploads');
+
+  fs.readdir(uploadPath, (err, files) => {
+    if (err) {
+      console.error('Error reading files in the uploads directory:', err);
+    } else {
+      // Delete each file in the 'uploads' directory
+      files.forEach((file) => {
+        const filePath = path.join(uploadPath, file);
+        fs.unlink(filePath, (unlinkErr) => {
+          if (unlinkErr) {
+            console.error('Error deleting file:', unlinkErr);
+          } else {
+            console.log(`Deleted file: ${filePath}`);
+          }
+        });
+      });
+    }
+  });
+}
 
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
