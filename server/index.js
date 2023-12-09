@@ -63,13 +63,6 @@ app.post('/upload-html', async (req, res) => {
   }
 });
 
-
-
-  
-// server/index.js
-
-// ... (other imports and configurations)
-
 app.post('/generate-epub', async (req, res) => {
   try {
     // Read all files from the 'uploads' directory

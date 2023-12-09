@@ -1,6 +1,59 @@
 import React, { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faTrashAlt } from '@fortawesome/free-solid-svg-icons';
+
+const containerStyle = {
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  justifyContent: 'center',
+  minHeight: '100vh',
+  backgroundColor: '#111', // Dark black background
+  color: '#fff', // White text color
+};
+
+const dropzoneStyle = {
+  border: '2px dashed #fff', // White dashed border
+  padding: '20px',
+  margin: '20px',
+  textAlign: 'center',
+  cursor: 'pointer', // Change cursor to pointer on hover
+  userSelect: 'none', // Disable text selection
+};
+
+const fileListStyle = {
+  listStyleType: 'none',
+  padding: 0,
+  textAlign: 'center',
+};
+
+const draggableStyle = {
+  padding: '8px',
+  margin: '0 0 8px 0',
+  backgroundColor: '#222', // Darker black background for each file
+  borderRadius: '4px',
+  boxShadow: '0 1px 2px rgba(0, 0, 0, 0.1)',
+};
+
+const buttonStyle = {
+  backgroundColor: '#fff', // White background for buttons
+  color: '#111', // Dark black text color for buttons
+  padding: '10px 20px',
+  margin: '10px',
+  border: 'none',
+  borderRadius: '4px',
+  cursor: 'pointer',
+};
+
+const removeButtonStyle = {
+  marginLeft: '10px',
+  backgroundColor: 'transparent',
+  color: 'red', 
+  border: 'none',
+  cursor: 'pointer',
+};
 
 function App() {
   const [files, setFiles] = useState([]);
@@ -9,32 +62,38 @@ function App() {
   const serverUrl = 'http://localhost:52875';
 
   const onDrop = useCallback((acceptedFiles) => {
-    setFiles(acceptedFiles);
-    setUploadMessage(`${acceptedFiles.length} file(s) selected`);
-  }, []);
+    setFiles((prevFiles) => {
+      return [...prevFiles, ...acceptedFiles];
+    });
+    setUploadMessage(`${files.length + acceptedFiles.length} file(s) selected`);
+  }, [files]);
+  
 
   const { getRootProps, getInputProps } = useDropzone({
     onDrop,
     accept: '.html',
   });
-  
 
+  const inputProps = getInputProps({ multiple: true });
+  
   const handleUpload = () => {
+    // Clear files and message before uploading new ones
+    setFiles([]);
+    setUploadMessage('');
+  
     if (!files || files.length === 0) {
       setUploadMessage('Please select at least one file before uploading.');
       return;
     }
-
+  
     const formData = new FormData();
-    files.forEach((file, index) => {
-      formData.append('htmlFiles', file);
-    });
-
-    // Include the order of files in the FormData
-    files.forEach((file, index) => {
-      formData.append('fileOrder[]', file.name);
-    });
-
+  
+    // Append each file to the FormData
+    for (let i = 0; i < files.length; i++) {
+      formData.append('htmlFiles', files[i]);
+      formData.append('fileOrder[]', files[i].name);
+    }
+  
     fetch(`${serverUrl}/upload-html`, {
       method: 'POST',
       body: formData,
@@ -46,7 +105,7 @@ function App() {
         setUploadMessage('Error uploading the files.');
       });
   };
-
+  
   const handleGenerateEpub = () => {
     fetch(`${serverUrl}/generate-epub`, {
       method: 'POST',
@@ -82,20 +141,17 @@ function App() {
     setFiles(updatedFiles);
   };
 
-  // Add this CSS or adjust as needed
-  const draggableStyle = {
-    padding: '8px',
-    margin: '0 0 8px 0',
-    backgroundColor: '#f8f8f8',
-    borderRadius: '4px',
-    boxShadow: '0 1px 2px rgba(0, 0, 0, 0.1)',
+  const handleRemoveFile = (indexToRemove) => {
+    const updatedFiles = files.filter((file, index) => index !== indexToRemove);
+    setFiles(updatedFiles);
+    setUploadMessage(`${updatedFiles.length} file(s) selected`);
   };
 
   return (
-    <div>
-      <div {...getRootProps()} style={{ border: '1px dashed #ccc', padding: '20px', margin: '20px' }}>
-        <input {...getInputProps()} />
-        <p>Drag 'n' drop HTML files here, or click to select files</p>
+    <div style={containerStyle}>
+      <div {...getRootProps()} style={dropzoneStyle}>
+        <input {...inputProps} />
+        <p>Drag & drop HTML files here, or click to browse files</p>
       </div>
       <p>{uploadMessage}</p>
       {files.length > 0 && (
@@ -104,7 +160,7 @@ function App() {
           <DragDropContext onDragEnd={onDragEnd}>
             <Droppable droppableId="fileList">
               {(provided) => (
-                <ul ref={provided.innerRef} {...provided.droppableProps}>
+                <ul ref={provided.innerRef} {...provided.droppableProps} style={fileListStyle}>
                   {files.map((file, index) => (
                     <Draggable key={index} draggableId={`file-${index}`} index={index}>
                       {(provided) => (
@@ -115,6 +171,11 @@ function App() {
                           style={{ ...draggableStyle, ...provided.draggableProps.style }}
                         >
                           {file.name}
+                          <FontAwesomeIcon
+                            icon={faTrashAlt}
+                            style={removeButtonStyle}
+                            onClick={() => handleRemoveFile(index)}
+                          />
                         </li>
                       )}
                     </Draggable>
@@ -126,10 +187,14 @@ function App() {
           </DragDropContext>
         </div>
       )}
-      <button onClick={handleUpload}>Upload HTML</button>
-      <button onClick={handleGenerateEpub}>Generate EPUB</button>
+      <button style={buttonStyle} onClick={handleUpload}>
+        Upload HTML
+      </button>
+      <button style={buttonStyle} onClick={handleGenerateEpub}>
+        Generate EPUB
+      </button>
     </div>
-  );  
+  );
 }
 
 export default App;
