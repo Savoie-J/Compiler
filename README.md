@@ -1,4 +1,8 @@
-# Getting Started with Compiler
+# Summary
+
+This project was made as a sequel to a prior project <sup>[[github](https://github.com/Savoie-J/Website-to-EPUB)]</sup> <sup>[[replit](https://replit.com/@savoiej/Website-to-Html)]</sup> of mine in java which scraped and cleaned book chapters from online websites.
+
+Utilizing the cleaned and EPUB compliant HTML files from that project one can then convert and compile said chapters into an EPUB file to be read offline on any device.
 
 ## Overview
 
@@ -22,12 +26,9 @@ Now all that remains is to click the 'Generate EPUB' button to convert and compi
 
 An automatic download will begin for your EPUB of compiled HTML files which can then be opened with an EPUB editor/reader.
 
-This project was made as a sequel to a [prior project](https://replit.com/@savoiej/Website-to-Html) of mine in java which scraped and cleaned book chapters from online websites.\
-Utilizing the cleaned and EPUB compliant HTML files from that project one can then convert and compile said chapters into an EPUB file to be read offline on any device.
-
 ## Available Scripts
 
-In the project directory, you can run:
+In order to run this project locally, you can run:
 
 ### `npm install`
 
