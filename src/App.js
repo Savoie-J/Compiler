@@ -1,131 +1,132 @@
-import React, { useState, useCallback } from 'react';
-import { useDropzone } from 'react-dropzone';
-import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTrashAlt } from '@fortawesome/free-solid-svg-icons';
+import React, { useState, useCallback } from "react";
+import { useDropzone } from "react-dropzone";
+import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faTrashAlt } from "@fortawesome/free-solid-svg-icons";
 
 const containerStyle = {
-  display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'center',
-  justifyContent: 'center',
-  minHeight: '100vh',
-  backgroundColor: '#111', // Dark black background
-  color: '#fff', // White text color
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  justifyContent: "center",
+  minHeight: "100vh",
+  backgroundColor: "#111",
+  color: "#fff",
 };
 
 const dropzoneStyle = {
-  border: '2px dashed #fff', // White dashed border
-  padding: '20px',
-  margin: '20px',
-  textAlign: 'center',
-  cursor: 'pointer', // Change cursor to pointer on hover
-  userSelect: 'none', // Disable text selection
+  border: "2px dashed #fff",
+  padding: "20px",
+  margin: "20px",
+  textAlign: "center",
+  cursor: "pointer",
+  userSelect: "none",
 };
 
 const fileListStyle = {
-  listStyleType: 'none',
+  listStyleType: "none",
   padding: 0,
-  textAlign: 'center',
+  textAlign: "center",
 };
 
 const draggableStyle = {
-  padding: '8px',
-  margin: '0 0 8px 0',
-  backgroundColor: '#222', // Darker black background for each file
-  borderRadius: '4px',
-  boxShadow: '0 1px 2px rgba(0, 0, 0, 0.1)',
+  padding: "8px",
+  margin: "0 0 8px 0",
+  backgroundColor: "#222", 
+  borderRadius: "4px",
+  boxShadow: "0 1px 2px rgba(0, 0, 0, 0.1)",
 };
 
 const buttonStyle = {
-  backgroundColor: '#fff', // White background for buttons
-  color: '#111', // Dark black text color for buttons
-  padding: '10px 20px',
-  margin: '10px',
-  border: 'none',
-  borderRadius: '4px',
-  cursor: 'pointer',
+  backgroundColor: "#fff",
+  color: "#111", 
+  padding: "10px 20px",
+  margin: "10px",
+  border: "none",
+  borderRadius: "4px",
+  cursor: "pointer",
 };
 
 const removeButtonStyle = {
-  marginLeft: '10px',
-  backgroundColor: 'transparent',
-  color: 'red', 
-  border: 'none',
-  cursor: 'pointer',
+  marginLeft: "10px",
+  backgroundColor: "transparent",
+  color: "red",
+  border: "none",
+  cursor: "pointer",
 };
 
 function App() {
   const [files, setFiles] = useState([]);
-  const [uploadMessage, setUploadMessage] = useState('');
+  const [uploadMessage, setUploadMessage] = useState("");
 
-  const serverUrl = 'http://localhost:52875';
+  const serverUrl = "http://localhost:52875";
 
-  const onDrop = useCallback((acceptedFiles) => {
-    setFiles((prevFiles) => {
-      return [...prevFiles, ...acceptedFiles];
-    });
-    setUploadMessage(`${files.length + acceptedFiles.length} file(s) selected`);
-  }, [files]);
-  
+  const onDrop = useCallback(
+    (acceptedFiles) => {
+      setFiles((prevFiles) => {
+        return [...prevFiles, ...acceptedFiles];
+      });
+      setUploadMessage(
+        `${files.length + acceptedFiles.length} file(s) selected`
+      );
+    },
+    [files]
+  );
 
   const { getRootProps, getInputProps } = useDropzone({
     onDrop,
-    accept: '.html',
+    accept: ".html",
   });
 
   const inputProps = getInputProps({ multiple: true });
-  
+
   const handleUpload = () => {
-    // Clear files and message before uploading new ones
     setFiles([]);
-    setUploadMessage('');
-  
+    setUploadMessage("");
+
     if (!files || files.length === 0) {
-      setUploadMessage('Please select at least one file before uploading.');
+      setUploadMessage("Please select at least one file before uploading.");
       return;
     }
-  
+
     const formData = new FormData();
-  
-    // Append each file to the FormData
+
     for (let i = 0; i < files.length; i++) {
-      formData.append('htmlFiles', files[i]);
-      formData.append('fileOrder[]', files[i].name);
+      formData.append("htmlFiles", files[i]);
+      formData.append("fileOrder[]", files[i].name);
     }
-  
+
     fetch(`${serverUrl}/upload-html`, {
-      method: 'POST',
+      method: "POST",
       body: formData,
     })
       .then((response) => response.json())
       .then((data) => setUploadMessage(`Upload successful: ${data.message}`))
       .catch((error) => {
-        console.error('Error:', error);
-        setUploadMessage('Error uploading the files.');
+        console.error("Error:", error);
+        setUploadMessage("Error uploading the files.");
       });
   };
-  
+
   const handleGenerateEpub = () => {
     fetch(`${serverUrl}/generate-epub`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
     })
       .then((response) => response.blob())
       .then((blob) => {
         const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
+        const a = document.createElement("a");
         a.href = url;
-        a.download = 'book.epub';
+        a.download = "book.epub";
         a.click();
         window.URL.revokeObjectURL(url);
-        // Clear the files after generating EPUB
         setFiles([]);
       })
       .catch((error) => {
-        console.error('Error:', error);
+        console.error("Error:", error);
       });
   };
 
@@ -160,15 +161,26 @@ function App() {
           <DragDropContext onDragEnd={onDragEnd}>
             <Droppable droppableId="fileList">
               {(provided) => (
-                <ul ref={provided.innerRef} {...provided.droppableProps} style={fileListStyle}>
+                <ul
+                  ref={provided.innerRef}
+                  {...provided.droppableProps}
+                  style={fileListStyle}
+                >
                   {files.map((file, index) => (
-                    <Draggable key={index} draggableId={`file-${index}`} index={index}>
+                    <Draggable
+                      key={index}
+                      draggableId={`file-${index}`}
+                      index={index}
+                    >
                       {(provided) => (
                         <li
                           ref={provided.innerRef}
                           {...provided.draggableProps}
                           {...provided.dragHandleProps}
-                          style={{ ...draggableStyle, ...provided.draggableProps.style }}
+                          style={{
+                            ...draggableStyle,
+                            ...provided.draggableProps.style,
+                          }}
                         >
                           {file.name}
                           <FontAwesomeIcon
